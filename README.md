@@ -7,52 +7,29 @@
 
 <!-- badges: end -->
 
-The goal of FluxGapsR is to …
+This is a package including four gap-filling methods for soil
+respiration data investigated in the study of Zhao et al. 2019 (to be
+published). The four methods are referred to as non-linear least squares
+(NLS), artificial neural networks (ANN), singular spectrum analysis
+(SSA) and expectation-maximization (EM).
 
-## Installation
+**Package installation**
 
-You can install the released version of FluxGapsR from
-[CRAN](https://CRAN.R-project.org) with:
+First, make sure the package `devtools` is installed in R. If not,
+install the package by:
 
 ``` r
-install.packages("FluxGapsR")
+install.packages("devtools")
 ```
 
-And the development version from [GitHub](https://github.com/) with:
+Then, install the `FluxGapsR` package in R by:
 
 ``` r
-# install.packages("devtools")
 devtools::install_github("junbinzhao/FluxGapsR")
 ```
 
-## Example
+The functioning of the package is based on other R packages:
+`tidyverse`,`spectral.methods`,`minpack.lm`,`mtsdi`,`neuralnet` and they
+must be installed before using the functions in the `FluxGapsR` package.
 
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub\!
+**Please cite the package as:** (TBD)
