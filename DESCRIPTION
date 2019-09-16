@@ -1,11 +1,16 @@
 Package: FluxGapsR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Gap-filling for flux data using different methods
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Junbin Zhao
+Year: 2018
+Maintainer: Junbin Zhao <junbinzhao1985@gmail.com>
+Description: This is a package including four gap-filling methods for soil respiration data investigated in the study of 
+Zhao et al. 2019 (to be published). The four methods are referred to as non-linear least squares (NLS), artificial neural networks
+(ANN), singular spectrum analysis (SSA) and expectation-maximization (EM).   
+License: MIT
 Encoding: UTF-8
 LazyData: true
+Depends: R (>= 3.5.2)
+Imports: tidyverse,spectral.methods,minpack.lm,mtsdi,neuralnet
+
