@@ -11,4 +11,4 @@ Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.5.2)
 Imports: tidyverse,spectral.methods,minpack.lm,mtsdi,neuralnet
-
+RoxygenNote: 6.1.1
