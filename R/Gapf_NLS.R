@@ -1,9 +1,7 @@
 #' Gap-fill using NLS
 #'
-#' This function loads a file as a matrix. It assumes that the first column
-#' contains the rownames and the subsequent columns are the sample identifiers.
-#' Any rows with duplicated row names will be dropped with the first one being
-#' kepted.
+#' This function automatically gap-fills the soil respiration data with missing data indicated as "NA"
+#' using the non-linear least square regression as a function of the soil temperature.
 #'
 #' @param data a data frame that includes the flux (with NA indicating the missing data) and soil temperature
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled

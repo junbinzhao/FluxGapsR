@@ -32,10 +32,8 @@ and a "Mark" column that indicates the value in each row of "Filled" is either:
 1. original, 2. gap-filled, or 3. failed to converge
 }
 \description{
-This function loads a file as a matrix. It assumes that the first column
-contains the rownames and the subsequent columns are the sample identifiers.
-Any rows with duplicated row names will be dropped with the first one being
-kepted.
+This function automatically gap-fills the soil respiration data with missing data indicated as "NA"
+using the non-linear least square regression as a function of the soil temperature.
 }
 \examples{
 df <- system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR")
