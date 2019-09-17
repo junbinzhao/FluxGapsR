@@ -1,4 +1,4 @@
-#' Load a Matrix
+#' Gap-fill using NLS
 #'
 #' This function loads a file as a matrix. It assumes that the first column
 #' contains the rownames and the subsequent columns are the sample identifiers.
@@ -19,6 +19,7 @@
 #' and a "Mark" column that indicates the value in each row of "Filled" is either:
 #' 1. original, 2. gap-filled, or 3. failed to converge
 #' @examples
+#' df <- system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR")
 #' df_filled <- Gapfill_nls(data = df)
 #' plot(df_filled$filled,col="red")
 #' points(df_filled$Flux)

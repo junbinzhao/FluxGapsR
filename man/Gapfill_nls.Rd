@@ -2,15 +2,15 @@
 % Please edit documentation in R/Gapf_NLS.R
 \name{Gapfill_nls}
 \alias{Gapfill_nls}
-\title{Load a Matrix}
+\title{Gap-fill using NLS}
 \usage{
 Gapfill_nls(data, Flux = "Flux", Ts = "Ts", win = 5, interval = 10,
   R10 = 1000, E0 = 400, fail = "ave")
 }
 \arguments{
-\item{data}{a data frame that includes the flux and soil temperature}
+\item{data}{a data frame that includes the flux (with NA indicating the missing data) and soil temperature}
 
-\item{Flux}{a string indicates the column name for the flux variable, such as soil respiration rate}
+\item{Flux}{a string indicates the column name for the flux variable to be gap-filled}
 
 \item{Ts}{a string indicates the column name for the soil temperature}
 
@@ -39,4 +39,6 @@ kepted.
 }
 \examples{
 df_filled <- Gapfill_nls(data = df)
+plot(df_filled$filled,col="red")
+points(df_filled$Flux)
 }
