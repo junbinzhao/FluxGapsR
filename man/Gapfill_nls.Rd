@@ -38,6 +38,7 @@ Any rows with duplicated row names will be dropped with the first one being
 kepted.
 }
 \examples{
+df <- system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR")
 df_filled <- Gapfill_nls(data = df)
 plot(df_filled$filled,col="red")
 points(df_filled$Flux)
