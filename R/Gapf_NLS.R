@@ -17,7 +17,7 @@
 #' and a "Mark" column that indicates the value in each row of "Filled" is either:
 #' 1. original, 2. gap-filled, or 3. failed to converge
 #' @examples
-#' df <- system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR")
+#' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 #' df_filled <- Gapfill_nls(data = df)
 #' plot(df_filled$filled,col="red")
 #' points(df_filled$Flux)
