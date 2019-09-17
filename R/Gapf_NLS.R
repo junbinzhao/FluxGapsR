@@ -30,107 +30,91 @@ Gapfill_nls <- function(data,
                         E0 = 400,
                         fail = "ave"
                         ){
+  # define the pipe from the package "magrittr"
+  `%>%` <- magrittr::`%>%`
   ### add sequence mark to the gaps -------
   mt <- is.na(data[,Flux])
   ind <- 1 # index for marking the gaps
-  mark <- vector()
+  mk <- vector()
   for (i in 1:length(mt)) {
     if (mt[i]==FALSE){
-      mark[i] <- 0 # non-gaps are marked as 0
+      mk[i] <- 0 # non-gaps are marked as 0
     } else {
       if (mt[i]==TRUE){
-        mark[i] <- ind # gaps are marked as the value of ind
+        mk[i] <- ind # gaps are marked as the value of ind
         if (mt[i+1]==FALSE) {
           ind <- ind+1 # when reached the end of a gap, change add 1 to ind
         }
       }
     }
   }
-  print(paste0(ind-1," gaps are marked")) # display the total number of gaps
+  print(paste0(max(mk)," gaps are marked")) # display the total number of gaps
 
-  #### the sampling window length ----------
-  winID <- win/2*6*24 # calculate how many data points need to be sample at EACH side of the gap
-  gap <- rep(NA,nrow(data)) # create vector to save the predicted gapfilled data
-  # F5h_nls3 <- rep(NA,nrow(plot1_gap))
-  # q <- enquo(Gap_type) # quote the column name for dplyr function
-  # qs <- quo_name(q) # convert the column name into a string
-  for (i in 1:max(data[,Gap_type])) {
-    dft <- data %>% # create a dataset from the origial one for gapfilling with data in the artificial gap removed
-      # mutate(Flux=ifelse(!!q==i,NA,Flux)) %>% # remove the data in the gap
-      mutate(Flux=ifelse(get(Gap_type)==i,NA,Flux)) %>% # remove the data in the gap
-      select(Flux,Ts,Ta)
-    indx <- which(data[,Gap_type]==i) # index of the gap
-    #################### use static time window
-    # define the window
+  ### prepare data for gapfilling -----
+  # the sampling window length
+  pt_h <- 60/interval # how many data points per hour
+  winID <- win/2*pt_h*24 # how many data points for the sampling window at EACH side of the gap
+  # create vector to save the predicted gapfilled data
+  gap <- rep(NA,nrow(data))
+  # extract the data needed for gap-filling
+  dft <- data[,c(Flux,Ts)]
+  names(dft) <- c("Flux","Ts")
+  # a vector for marks of each gap
+  mark <- rep(0,length(dft))
+  # a number to record the number of failed regression
+  nf <- 0
+
+  ### gap filling by the marked index of each gap ----------
+  for (i in 1:max(mk)) {
+    indx <- which(mk==i) # index of the gap
+    # define the sampling window
     wind_st <- ifelse(min(indx)-winID>=0,min(indx)-winID,1) # use the beginning of time series if not enough sample points are present
     wind_ed <- ifelse(max(indx)+winID>nrow(data),nrow(data),max(indx)+winID) # use the end if not enough
-    fit1 <- try(nlsLM(Flux~a*exp(b*Ts), # a basic model
-                      start = list(a=1,b=0.1),
-                      data = dft[wind_st:wind_ed,],# use the data within 30 days window
-                      control=nls.lm.control(maxiter = 1000)),
-                silent = T)
-    fit2 <- try(nlsLM(Flux~a*exp(b/(227.13-(Ts+273.15))), # Lloyd-Taylor model
-                      start = list(a=1000,b=400),
-                      data = dft[wind_st:wind_ed,],# use the data within 30 days window
-                      control=nls.lm.control(maxiter = 1000)),
-                silent = T)
-    fit3 <- try(lm(Flux~poly(Ts,2),
-                   data = dft[wind_st:wind_ed,]),
-                silent = T)
-    fit4 <- try(lm(Flux~Ts,
-                   data = dft[wind_st:wind_ed,]),
-                silent = T)
 
-    ######################
-    # for (j in indx) { # fill each point based on the index
-    # fit1 <- try(nlsLM(Flux~a*exp(b*Ts), # a basic model
-    #             start = list(a=1,b=0.1),
-    #             data = dft[(j-2160):(j+2160),]),# use the data within 30 days window
-    #             silent = T)
-    # fit2 <- try(nlsLM(Flux~a*exp(b/(227.13-(Ts+273.15))), # Lloyd-Taylor model
-    #             start = list(a=1000,b=400),
-    #             data = dft[(j-2160):(j+2160),]),# use the data within 30 days window
-    #             silent = T)
-    # fit3 <- lm(Flux~poly(Ts,2),
-    #            data = dft[(j-2160):(j+2160),])
-    # predict the flux based on the soil temperature for gapfilling
-    if (class(fit2)!="try-error"){ # if fit2 is not error, use it
-      gap[indx] <- predict(fit2,newdata=dft[indx,])
-    } else { # but if fit2 is error, then ...
-      if (class(fit1)!="try-error"){ # then use fit1
-        gap[indx] <- predict(fit1,newdata=dft[indx,])
-      } else { # but if fit1 is also error, then ........
-        if (class(fit3)!="try-error"){ # then use fit3
-          gap[indx] <- predict(fit3,newdata=dft[indx,])
-        } else { # but if fit3 is also error, then use fit4
-          gap[indx] <- predict(fit4,newdata=dft[indx,])
-        }
+    # fit the nls model
+    fit <- try(minpack.lm::nlsLM(Flux~a*exp(b*(1/(283.15-227.13)-1/(Ts-227.13))),
+                                 start = list(a=R10,b=E0),
+                                 data = dft[wind_st:wind_ed,],
+                                 control=nls.lm.control(maxiter = 1000)
+                                 ),
+               silent = TRUE)
+    if (class(fit)=="try-error"){# it failed to fit the Lloyd-Taylor model try the basic model
+      fit <- try(minpack.lm::nlsLM(Flux~a*exp(b*Ts),
+                                   start = list(a=1,b=0.1),
+                                   data = dft[wind_st:wind_ed,],
+                                   control=nls.lm.control(maxiter = 1000)
+      ),
+      silent = TRUE)
+    }
+
+    # predict the gaps
+    if (class(fit)!="try-error"){ # if the fit converged
+      gap[indx] <- predict(fit,newdata=dft[indx,])
+      mark[indx] <- 1 # filled gap
+      print(paste0("#",i," out of ",max(mk),"gaps: succeed!!")) # for checking progress
+    } else {
+      if (fail == "ave"){ # use average in the sampling window
+        gap[indx] <- mean(dft[indx,"Flux"],na.rm = T)
+        mark[indx] <- 2 # failed to filled gap
+        print(paste0("#",i," out of ",max(mk),"gaps: Failed...")) # for checking progress
+      } else { # or use the designated value
+        gap[indx] <- fail
+        mark[indx] <- 2 # failed to filled gap
+        nf <- nf+1 # add up the failed times
+        print(paste0("#",i," out of ",max(mk),"gaps: Failed...")) # for checking progress
       }
     }
-    #     if (class(fit1)=="try-error"){
-    #       if (class(fit3)=="try-error"){
-    #         gap[j] <- predict(fit4,newdata=dft[j,])# if fit1-3 are error, use fit4
-    #       } else {
-    #         gap[j] <- predict(fit3,newdata=dft[j,]) # if both fit1 and 2 are error, use fit3
-    #         } else {
-    #           gap[j] <- predict(fit1,newdata=dft[j,]) # if fit2 is error and fit1 is not, use fit1
-    #           }
-    #     } else {
-    #     if (class(fit1)=="try-error"){
-    #       gap[j] <- predict(fit2,newdata=dft[j,]) # if fit1 is error but not fit2, use fit2
-    #     } else {
-    #       if (sum(abs(resid(fit1)))<sum(abs(resid(fit2)))){# if both fit 1 and 2 are NOT error, use the one with smaller residuals
-    #       gap[j] <- predict(fit1,newdata=dft[j,])
-    #     } else{
-    #       gap[j] <- predict(fit2,newdata=dft[j,])
-    #     }
-    #     }
-    #
-    #   }
-    # }
-    # }
-    print(c(i,max(data[,Gap_type]),Gap_type)) # for checking progress
-  }
+  } # end of the loop
   df_new <- data.frame(data,gap,mark)
-  return(df_new) # output the vector with all the gapfilled data
+  return(df_new)
+  # print a summary of the gapfilling ------------
+  stat <- table(mk)[-1] # number of data points in each gap
+  # print using "cat" for break into lines
+  cat(paste0("Total gaps:       ",max(mk),"\n",
+             "< 1 day:          ",sum(stat<pt_h*24),"\n",
+             ">= 1 & < 7 days:  ",sum(stat>=pt_h*24 & stat<pt_h*24*7),"\n",
+             ">= 7 & < 15 days: ",sum(stat>=pt_h*24*7 & stat<pt_h*24*15),"\n",
+             ">= 15 days:       ",sum(stat>=pt_h*24*15),"\n",
+             "Failed gaps:      ",nf
+             ))
 }
