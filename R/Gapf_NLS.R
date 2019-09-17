@@ -20,6 +20,8 @@
 #' 1. original, 2. gap-filled, or 3. failed to converge
 #' @examples
 #' df_filled <- Gapfill_nls(data = df)
+#' plot(df_filled$filled,col="red")
+#' points(df_filled$Flux)
 #' @export
 Gapfill_nls <- function(data,
                         Flux = "Flux",
@@ -60,7 +62,7 @@ Gapfill_nls <- function(data,
   dft <- data[,c(Flux,Ts)]
   names(dft) <- c("Flux","Ts")
   # a vector for marks of each gap
-  mark <- rep(0,length(dft))
+  mark <- rep(0,nrow(dft))
   # a number to record the number of failed regression
   nf <- 0
 
@@ -75,14 +77,14 @@ Gapfill_nls <- function(data,
     fit <- try(minpack.lm::nlsLM(Flux~a*exp(b*(1/(283.15-227.13)-1/(Ts-227.13))),
                                  start = list(a=R10,b=E0),
                                  data = dft[wind_st:wind_ed,],
-                                 control=nls.lm.control(maxiter = 1000)
+                                 control=minpack.lm::nls.lm.control(maxiter = 1000)
                                  ),
                silent = TRUE)
     if (class(fit)=="try-error"){# it failed to fit the Lloyd-Taylor model try the basic model
       fit <- try(minpack.lm::nlsLM(Flux~a*exp(b*Ts),
                                    start = list(a=1,b=0.1),
                                    data = dft[wind_st:wind_ed,],
-                                   control=nls.lm.control(maxiter = 1000)
+                                   control=minpack.lm::nls.lm.control(maxiter = 1000)
       ),
       silent = TRUE)
     }
@@ -96,6 +98,7 @@ Gapfill_nls <- function(data,
       if (fail == "ave"){ # use average in the sampling window
         gap[indx] <- mean(dft$Flux[wind_st:wind_ed],na.rm = T)
         mark[indx] <- 2 # failed to filled gap
+        nf <- nf+1 # add up the failed times
         print(paste0("#",i," out of ",max(mk)," gaps: Failed...")) # for checking progress
       } else { # or use the designated value
         gap[indx] <- fail
@@ -105,8 +108,9 @@ Gapfill_nls <- function(data,
       }
     }
   } # end of the loop
-  df_new <- data.frame(data,gap,mark)
-  return(df_new)
+  df_new <- data.frame(data,
+                       filled = gap,
+                       mark)
   # print a summary of the gapfilling ------------
   stat <- table(mk)[-1] # number of data points in each gap
   # print using "cat" for break into lines
@@ -117,4 +121,6 @@ Gapfill_nls <- function(data,
              ">= 15 days:       ",sum(stat>=pt_h*24*15),"\n",
              "Failed gaps:      ",nf
              ))
+  # return the output data frame
+  return(df_new)
 }
