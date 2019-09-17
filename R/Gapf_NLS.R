@@ -30,8 +30,8 @@ Gapfill_nls <- function(data,
                         E0 = 400,
                         fail = "ave"
                         ){
-  # define the pipe from the package "magrittr"
-  `%>%` <- magrittr::`%>%`
+  # # define the pipe from the package "magrittr"
+  # `%>%` <- magrittr::`%>%`
   ### add sequence mark to the gaps -------
   mt <- is.na(data[,Flux])
   ind <- 1 # index for marking the gaps
