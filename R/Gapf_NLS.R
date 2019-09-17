@@ -5,8 +5,8 @@
 #' Any rows with duplicated row names will be dropped with the first one being
 #' kepted.
 #'
-#' @param data a data frame that includes the flux and soil temperature
-#' @param Flux a string indicates the column name for the flux variable, such as soil respiration rate
+#' @param data a data frame that includes the flux (with NA indicating the missing data) and soil temperature
+#' @param Flux a string indicates the column name for the flux variable to be gap-filled
 #' @param Ts a string indicates the column name for the soil temperature
 #' @param win a number indicates total sampling window length around each gap, unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the dataset, unit: minutes (default: 10)
@@ -30,6 +30,27 @@ Gapfill_nls <- function(data,
                         E0 = 400,
                         fail = "ave"
                         ){
+  ### add sequence mark to the gaps -------
+  mt <- is.na(data[,Flux])
+  ind <- 1 # index for marking the gaps
+  mark <- vector()
+  for (i in 1:length(mt)) {
+    if (mt[i]==FALSE){
+      mark[i] <- 0 # non-gaps are marked as 0
+    } else {
+      if (mt[i]==TRUE){
+        mark[i] <- ind # gaps are marked as the value of ind
+        if (mt[i+1]==FALSE) {
+          ind <- ind+1 # when reached the end of a gap, change add 1 to ind
+        }
+      }
+    }
+  }
+  print(paste0(ind-1," gaps are marked")) # display the total number of gaps
+
+  #### the sampling window length ----------
+
+
   winID <- win/2*6*24 # calculate how many data points need to be sample at each side of the gap
   gap <- rep(NA,nrow(data)) # create vector to save the predicted gapfilled data
   # F5h_nls3 <- rep(NA,nrow(plot1_gap))
