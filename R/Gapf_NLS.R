@@ -94,7 +94,7 @@ Gapfill_nls <- function(data,
       print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
     } else {
       if (fail == "ave"){ # use average in the sampling window
-        gap[indx] <- mean(dft[wind_st:wind_ed,"Flux"],na.rm = T)
+        gap[indx] <- mean(dft$Flux[wind_st:wind_ed],na.rm = T)
         mark[indx] <- 2 # failed to filled gap
         print(paste0("#",i," out of ",max(mk)," gaps: Failed...")) # for checking progress
       } else { # or use the designated value
