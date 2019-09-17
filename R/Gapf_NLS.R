@@ -91,17 +91,17 @@ Gapfill_nls <- function(data,
     if (class(fit)!="try-error"){ # if the fit converged
       gap[indx] <- predict(fit,newdata=dft[indx,])
       mark[indx] <- 1 # filled gap
-      print(paste0("#",i," out of ",max(mk),"gaps: succeed!!")) # for checking progress
+      print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
     } else {
       if (fail == "ave"){ # use average in the sampling window
-        gap[indx] <- mean(dft[indx,"Flux"],na.rm = T)
+        gap[indx] <- mean(dft[wind_st:wind_ed,"Flux"],na.rm = T)
         mark[indx] <- 2 # failed to filled gap
-        print(paste0("#",i," out of ",max(mk),"gaps: Failed...")) # for checking progress
+        print(paste0("#",i," out of ",max(mk)," gaps: Failed...")) # for checking progress
       } else { # or use the designated value
         gap[indx] <- fail
         mark[indx] <- 2 # failed to filled gap
         nf <- nf+1 # add up the failed times
-        print(paste0("#",i," out of ",max(mk),"gaps: Failed...")) # for checking progress
+        print(paste0("#",i," out of ",max(mk)," gaps: Failed...")) # for checking progress
       }
     }
   } # end of the loop
