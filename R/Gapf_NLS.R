@@ -49,9 +49,7 @@ Gapfill_nls <- function(data,
   print(paste0(ind-1," gaps are marked")) # display the total number of gaps
 
   #### the sampling window length ----------
-
-
-  winID <- win/2*6*24 # calculate how many data points need to be sample at each side of the gap
+  winID <- win/2*6*24 # calculate how many data points need to be sample at EACH side of the gap
   gap <- rep(NA,nrow(data)) # create vector to save the predicted gapfilled data
   # F5h_nls3 <- rep(NA,nrow(plot1_gap))
   # q <- enquo(Gap_type) # quote the column name for dplyr function
