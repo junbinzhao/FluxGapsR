@@ -1,42 +1,44 @@
-#' Gap-fill using NLS
+#' Gap-fill using ANN
 #'
-#' This function automatically gap-fills the missing data points (marked as "NA") in the soil respiration dataset
-#' using the non-linear Levenberg-Marquardt algorithm as a function of the soil temperature. A Lloyd-Taylor model is used
-#' to formulate the relationship (Lloyd & Taylor, 1994). In cases when Lloyd-Taylor model yields large residuals, a basic exponential
-#' function is used instead ("Flux~a*exp(b*Ts)").
+#' This function automatically gap-fills the missing data points (marked as "NA") in the flux dataset
+#' using artificial neural networks that take up to three variables as inputs.
 #'
-#' @param data a data frame that includes the flux (with NA indicating the missing data) and soil temperature
+#' @param data a data frame that includes the flux (with NA indicating the missing data) and independent variables
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled
-#' @param Ts a string indicates the column name for the soil temperature
+#' @param var1 a string indicates the column name for the first variable
+#' @param var2 a string indicates the column name for the second variable, default: NULL
+#' @param var3 a string indicates the column name for the third variable, default: NULL
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
-#' @param R10 the start value for the parameter R10 in the Lloyd-Taylor model (default: 10)
-#' @param E0 the start value for the parameter E0 in the Lloyd-Taylor model (default: 400)
+#' @param threshold a numeric value specifying the threshold for the partial derivatives of the error function as stopping criteria
+#' @param hidden a vector of integers specifying the number of hidden neurons (vertices) in each layer
 #' @param fail a string or a number, what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
+#' @param ... other arguments pass to `neuralnet`
 #' @return A data frame that includes the original data, gap-filled data ("filled")
 #' and a "mark" column that indicates the value in each row of the "filled" is either:
 #' 1. original, 2. gap-filled, or 3. failed to converge
-#' @references
-#' Lloyd J., Taylor, J.A., 1994. On the Temperature Dependence of Soil Respiration. Functional Ecology. 8, 315-323.
 #' @examples
 #' # read example data
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
-#' df_filled <- Gapfill_nls(data = df)
+#' df_filled <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
 #' # visualize the gapfilled results
 #' plot(df_filled$filled,col="red",ylim = c(0,11))
 #' points(df_filled$Flux)
 #' @export
-Gapfill_nls <- function(data,
+Gapfill_ann <- function(data,
                         Flux = "Flux",
-                        Ts = "Ts",
+                        var1,
+                        var2 = NULL,
+                        var3 = NULL,
                         win = 5,
                         interval = 10,
-                        R10 = 10,
-                        E0 = 400,
-                        fail = "ave"
-                        ){
+                        threshold = 1,
+                        hidden = 2,
+                        fail = "ave",
+                        ...
+){
   # # define the pipe from the package "magrittr"
   `%>%` <- magrittr::`%>%`
   ### add sequence mark to the gaps -------
@@ -63,9 +65,40 @@ Gapfill_nls <- function(data,
   winID <- win/2*pt_h*24 # how many data points for the sampling window at EACH side of the gap
   # create vector to save the predicted gapfilled data
   gap <- rep(NA,nrow(data))
-  # extract the data needed for gap-filling
-  dft <- data[,c(Flux,Ts)]
-  names(dft) <- c("Flux","Ts")
+
+  #  based on variable numbers
+  if (is.null(var2)){ # if one variable
+    # extract the data needed for gap-filling
+    dft <- data[,c(Flux,var1)]
+    names(dft) <- c("Flux","var1")
+    # scale and normalize the input variables
+    dft <- dft %>%
+      mutate(var1=scale(var1))
+    formula <- as.formula("Flux~var1")
+  } else {
+    if (is.null(var3)){ # if two variables
+      # extract the data needed for gap-filling
+      dft <- data[,c(Flux,var1,var2)]
+      names(dft) <- c("Flux","var1","var2")
+      # scale and normalize the input variables
+      dft <- dft %>%
+        mutate(var1=scale(var1),
+               var2=scale(var2))
+      formula <- as.formula("Flux~var1+var2")
+    } else { # if three variables
+      # extract the data needed for gap-filling
+      dft <- data[,c(Flux,var1,var2,var3)]
+      names(dft) <- c("Flux","var1","var2","var3")
+      # scale and normalize the input variables
+      dft <- dft %>%
+        mutate(var1=scale(var1),
+               var2=scale(var2),
+               var3=scale(var3))
+      formula <- as.formula("Flux~var1+var2+var3")
+    }
+  }
+
+
   # a vector for marks of each gap
   mark <- rep(0,nrow(dft))
   # a number to record the number of failed regression
@@ -77,40 +110,23 @@ Gapfill_nls <- function(data,
     # define the sampling window
     wind_st <- ifelse(min(indx)-winID>=0,min(indx)-winID,1) # use the beginning of time series if not enough sample points are present
     wind_ed <- ifelse(max(indx)+winID>nrow(data),nrow(data),max(indx)+winID) # use the end if not enough
+    # extract data to fit the model
+    df_ann <- dft[wind_st:wind_ed,] %>%
+      na.omit(.) # remove data in the gap
 
-    # fit the Lloyd-Taylor model
-    fit1 <- try(minpack.lm::nlsLM(Flux~a*exp(b*(1/(283.15-227.13)-1/(Ts-227.13))),
-                                 start = list(a=R10,b=E0),
-                                 data = dft[wind_st:wind_ed,],
-                                 control=minpack.lm::nls.lm.control(maxiter = 1000)
-                                 ),
-               silent = TRUE)
-    # fit the basic model
-    fit2 <- try(minpack.lm::nlsLM(Flux~a*exp(b*Ts),
-                                 start = list(a=1,b=0.1),
-                                 data = dft[wind_st:wind_ed,],
-                                 control=minpack.lm::nls.lm.control(maxiter = 1000)
-                                 ),
-                silent = TRUE)
-
-    # choose the model
-    if (class(fit1)!="try-error") {
-      if (class(fit2)!="try-error"){
-        if (sum(summary(fit1)$residuals) > sum(summary(fit2)$residuals)){ # both are not error, choose the one with smaller residuals
-          fit <- fit2
-        } else {
-          fit <- fit1
-        }
-      } else { # if fit2 is error, fit1 is not
-        fit <- fit1
-      }
-    } else { # if fit1 is error
-      fit <- fit2
-    }
+    # ANN model
+    nn <- try(neuralnet::neuralnet(formula = formula,
+                                   data = df_ann,
+                                   # data = dft[sample(c(1:nrow(dft)),size = 2000),], ## sample a fraction of data for test
+                                   threshold = threshold, # increase the threshold to improve the chance of converge
+                                   stepmax = 1e+07, # increase the max step to improve the chance of converge
+                                   hidden = hidden, #
+                                   linear.output = T,...), # regression, not classification
+                                   silent = TRUE)
 
     # predict the gaps
     if (class(fit)!="try-error"){ # if the fit converged
-      gap[indx] <- predict(fit,newdata=dft[indx,])
+      gap[indx] <- predict(nn,newdata=dft[indx,])
       mark[indx] <- 1 # filled gap
       print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
     } else {
@@ -146,7 +162,7 @@ Gapfill_nls <- function(data,
              ">= 7 & < 15 days: ",sum(stat>=pt_h*24*7 & stat<pt_h*24*15),"\n",
              ">= 15 days:       ",sum(stat>=pt_h*24*15),"\n",
              "Failed gaps:      ",nf
-             ))
+  ))
   # return the output data frame
   return(df_new)
 }

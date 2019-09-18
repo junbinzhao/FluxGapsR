@@ -38,9 +38,11 @@ to formulate the relationship (Lloyd & Taylor, 1994). In cases when Lloyd-Taylor
 function is used instead ("Flux~a*exp(b*Ts)").
 }
 \examples{
+# read example data
 df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 df_filled <- Gapfill_nls(data = df)
-plot(df_filled$filled,col="red")
+# visualize the gapfilled results
+plot(df_filled$filled,col="red",ylim = c(0,11))
 points(df_filled$Flux)
 }
 \references{
