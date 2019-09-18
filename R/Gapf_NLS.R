@@ -1,21 +1,25 @@
 #' Gap-fill using NLS
 #'
-#' This function automatically gap-fills the soil respiration data with missing data indicated as "NA"
-#' using the non-linear least square regression as a function of the soil temperature.
+#' This function automatically gap-fills the missing data points (marked as "NA") in the soil respiration dataset
+#' using the non-linear Levenberg-Marquardt algorithm as a function of the soil temperature. A Lloyd-Taylor model is used
+#' to formulate the relationship (Lloyd & Taylor, 1994). In cases when Lloyd-Taylor model yields large residuals, a basic exponential
+#' function is used instead ("Flux~a*exp(b*Ts)").
 #'
 #' @param data a data frame that includes the flux (with NA indicating the missing data) and soil temperature
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled
 #' @param Ts a string indicates the column name for the soil temperature
-#' @param win a number indicates total sampling window length around each gap, unit: days (default: 5)
-#' @param interval a number indicates the temporal resolution of the dataset, unit: minutes (default: 10)
-#' @param R10 the start value for the parameter R10 in the regression (default: 1000)
-#' @param E0 the start value for the parameter E0 in the regression (default: 400)
+#' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
+#' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
+#' @param R10 the start value for the parameter R10 in the Lloyd-Taylor model (default: 10)
+#' @param E0 the start value for the parameter E0 in the Lloyd-Taylor model (default: 400)
 #' @param fail a string or a number, what to do when model fails to converge:
-#' 1. use the mean value in the sampling window to fill the gap ("ave",default), or
+#' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
-#' @return A data frame that includes the original data, gap-filled data ("Filled")
-#' and a "Mark" column that indicates the value in each row of "Filled" is either:
+#' @return A data frame that includes the original data, gap-filled data ("filled")
+#' and a "mark" column that indicates the value in each row of the "filled" is either:
 #' 1. original, 2. gap-filled, or 3. failed to converge
+#' @references
+#' Lloyd J., Taylor, J.A., 1994. On the Temperature Dependence of Soil Respiration. Functional Ecology. 8, 315-323.
 #' @examples
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 #' df_filled <- Gapfill_nls(data = df)
@@ -27,12 +31,12 @@ Gapfill_nls <- function(data,
                         Ts = "Ts",
                         win = 5,
                         interval = 10,
-                        R10 = 1000,
+                        R10 = 10,
                         E0 = 400,
                         fail = "ave"
                         ){
   # # define the pipe from the package "magrittr"
-  # `%>%` <- magrittr::`%>%`
+  `%>%` <- magrittr::`%>%`
   ### add sequence mark to the gaps -------
   mt <- is.na(data[,Flux])
   ind <- 1 # index for marking the gaps
@@ -72,20 +76,34 @@ Gapfill_nls <- function(data,
     wind_st <- ifelse(min(indx)-winID>=0,min(indx)-winID,1) # use the beginning of time series if not enough sample points are present
     wind_ed <- ifelse(max(indx)+winID>nrow(data),nrow(data),max(indx)+winID) # use the end if not enough
 
-    # fit the nls model
-    fit <- try(minpack.lm::nlsLM(Flux~a*exp(b*(1/(283.15-227.13)-1/(Ts-227.13))),
+    # fit the Lloyd-Taylor model
+    fit1 <- try(minpack.lm::nlsLM(Flux~a*exp(b*(1/(283.15-227.13)-1/(Ts-227.13))),
                                  start = list(a=R10,b=E0),
                                  data = dft[wind_st:wind_ed,],
                                  control=minpack.lm::nls.lm.control(maxiter = 1000)
                                  ),
                silent = TRUE)
-    if (class(fit)=="try-error"){# it failed to fit the Lloyd-Taylor model try the basic model
-      fit <- try(minpack.lm::nlsLM(Flux~a*exp(b*Ts),
-                                   start = list(a=1,b=0.1),
-                                   data = dft[wind_st:wind_ed,],
-                                   control=minpack.lm::nls.lm.control(maxiter = 1000)
-      ),
-      silent = TRUE)
+    # fit the basic model
+    fit2 <- try(minpack.lm::nlsLM(Flux~a*exp(b*Ts),
+                                 start = list(a=1,b=0.1),
+                                 data = dft[wind_st:wind_ed,],
+                                 control=minpack.lm::nls.lm.control(maxiter = 1000)
+                                 ),
+                silent = TRUE)
+
+    # choose the model
+    if (class(fit1)!="try-error") {
+      if (class(fit2)!="try-error"){
+        if (sum(summary(fit1)$residuals) > sum(summary(fit2)$residuals)){ # both are not error, choose the one with smaller residuals
+          fit <- fit2
+        } else {
+          fit <- fit1
+        }
+      } else { # if fit2 is error, fit1 is not
+        fit <- fit1
+      }
+    } else { # if fit1 is error
+      fit <- fit2
     }
 
     # predict the gaps
@@ -109,12 +127,15 @@ Gapfill_nls <- function(data,
   } # end of the loop
   df_new <- data.frame(data,
                        filled = gap,
-                       mark)
+                       tem = dft[,"Flux"],
+                       mark) %>%
+    mutate(filled = ifelse(mark==0,tem,filled)) %>%
+    select(-tem) # drop the temperory column
   # print a summary of the gapfilling ------------
   stat <- table(mk)[-1] # number of data points in each gap
   # print using "cat" for break into lines
   cat(paste0("","\n",
-             "#### Summary ######","\n",
+             "##### Summary #####","\n",
              "","\n",
              "Total gaps:       ",max(mk),"\n",
              "< 1 day:          ",sum(stat<pt_h*24),"\n",

@@ -5,7 +5,7 @@
 \title{Gap-fill using NLS}
 \usage{
 Gapfill_nls(data, Flux = "Flux", Ts = "Ts", win = 5, interval = 10,
-  R10 = 1000, E0 = 400, fail = "ave")
+  R10 = 10, E0 = 400, fail = "ave")
 }
 \arguments{
 \item{data}{a data frame that includes the flux (with NA indicating the missing data) and soil temperature}
@@ -14,30 +14,35 @@ Gapfill_nls(data, Flux = "Flux", Ts = "Ts", win = 5, interval = 10,
 
 \item{Ts}{a string indicates the column name for the soil temperature}
 
-\item{win}{a number indicates total sampling window length around each gap, unit: days (default: 5)}
+\item{win}{a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)}
 
-\item{interval}{a number indicates the temporal resolution of the dataset, unit: minutes (default: 10)}
+\item{interval}{a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)}
 
-\item{R10}{the start value for the parameter R10 in the regression (default: 1000)}
+\item{R10}{the start value for the parameter R10 in the Lloyd-Taylor model (default: 10)}
 
-\item{E0}{the start value for the parameter E0 in the regression (default: 400)}
+\item{E0}{the start value for the parameter E0 in the Lloyd-Taylor model (default: 400)}
 
 \item{fail}{a string or a number, what to do when model fails to converge:
-1. use the mean value in the sampling window to fill the gap ("ave",default), or
+1. use the mean value in the sampling window to fill the gap ("ave", default), or
 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)}
 }
 \value{
-A data frame that includes the original data, gap-filled data ("Filled")
-and a "Mark" column that indicates the value in each row of "Filled" is either:
+A data frame that includes the original data, gap-filled data ("filled")
+and a "mark" column that indicates the value in each row of the "filled" is either:
 1. original, 2. gap-filled, or 3. failed to converge
 }
 \description{
-This function automatically gap-fills the soil respiration data with missing data indicated as "NA"
-using the non-linear least square regression as a function of the soil temperature.
+This function automatically gap-fills the missing data points (marked as "NA") in the soil respiration dataset
+using the non-linear Levenberg-Marquardt algorithm as a function of the soil temperature. A Lloyd-Taylor model is used
+to formulate the relationship (Lloyd & Taylor, 1994). In cases when Lloyd-Taylor model yields large residuals, a basic exponential
+function is used instead ("Flux~a*exp(b*Ts)").
 }
 \examples{
-df <- system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR")
+df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 df_filled <- Gapfill_nls(data = df)
 plot(df_filled$filled,col="red")
 points(df_filled$Flux)
+}
+\references{
+Lloyd J., Taylor, J.A., 1994. On the Temperature Dependence of Soil Respiration. Functional Ecology. 8, 315-323.
 }
