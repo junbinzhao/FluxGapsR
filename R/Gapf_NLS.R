@@ -113,7 +113,10 @@ Gapfill_nls <- function(data,
   # print a summary of the gapfilling ------------
   stat <- table(mk)[-1] # number of data points in each gap
   # print using "cat" for break into lines
-  cat(paste0("Total gaps:       ",max(mk),"\n",
+  cat(paste0("","\n",
+             "#### Summary ######","\n",
+             "","\n",
+             "Total gaps:       ",max(mk),"\n",
              "< 1 day:          ",sum(stat<pt_h*24),"\n",
              ">= 1 & < 7 days:  ",sum(stat>=pt_h*24 & stat<pt_h*24*7),"\n",
              ">= 7 & < 15 days: ",sum(stat>=pt_h*24*7 & stat<pt_h*24*15),"\n",
