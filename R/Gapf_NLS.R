@@ -21,8 +21,10 @@
 #' @references
 #' Lloyd J., Taylor, J.A., 1994. On the Temperature Dependence of Soil Respiration. Functional Ecology. 8, 315-323.
 #' @examples
+#' # read example data
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 #' df_filled <- Gapfill_nls(data = df)
+#' # visualize the gapfilled results
 #' plot(df_filled$filled,col="red")
 #' points(df_filled$Flux)
 #' @export
