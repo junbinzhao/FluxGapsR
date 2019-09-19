@@ -10,9 +10,9 @@
 #' @param var3 a string indicates the column name for the third variable, default: NULL
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
-#' @param threshold a numeric value specifying the threshold for the partial derivatives of the error function as stopping criteria
-#' @param hidden a vector of integers specifying the number of hidden neurons (vertices) in each layer
-#' @param fail a string or a number, what to do when model fails to converge:
+#' @param threshold a number specifies the threshold for the partial derivatives of the error function as stopping criteria for the ANN model
+#' @param hidden a vector of integers specifies the number of hidden neurons (vertices) in each layer in the ANN model
+#' @param fail a string or a number indicates what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
 #' @param ... other arguments pass to `neuralnet`
