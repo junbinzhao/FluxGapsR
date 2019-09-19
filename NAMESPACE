@@ -2,3 +2,4 @@
 
 export(Gapfill_ann)
 export(Gapfill_nls)
+export(Gapfill_ssa)

@@ -5,8 +5,11 @@
 #'
 #' @param data a data frame that includes the flux (with NA indicating the missing data) and independent variables
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled
-#' @param Date a string indicates the column name for the date (including the time information)
+#' @param Date a string indicates the column name for the date, which HAS to include the time information
 #' @param Date_form a string indicates the format of the date, either "ymd_hms" (default), "mdy_hms" or "dmy_hms"
+#' @param borders.wl list of numeric vectors indicate orders of the different periodicity bands to extract.
+#' Units are the sampling frequency of the series
+#' (needs one vector per step; default: list(a = c(0,10, Inf)) (see details in the package `spectral.methods`)).
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
 #' @param fail a string or a number indicates what to do when model fails to converge:
@@ -63,7 +66,7 @@ Gapfill_ssa <- function(data,
   # extract the data needed for gap-filling
   dft <- data[,c(Date,Flux)]
   names(dft) <- c("Date","Flux")
-  dft <- dft %>% dplyr::mutate(Date=switch(Date_form,
+  dft <- dft %>% dplyr::mutate(Date=switch(Date_form, # convert the date into right format depending on the input format
                                            "ymd_hms" = lubridate::ymd_hms(Date),
                                            "mdy_hms" = lubridate::mdy_hms(Date),
                                            "dmy_hms" = lubridate::dmy_hms(Date),
@@ -82,13 +85,13 @@ Gapfill_ssa <- function(data,
     wind_ed <- ifelse(max(indx)+winID>nrow(data),nrow(data),max(indx)+winID) # use the end if not enough
     # extract data to fit the model
     df_ssa <- data.frame(dft[wind_st:wind_ed,],
-                         mk[wind_st:wind_ed])
+                         mk=mk[wind_st:wind_ed])
 
     # SSA fit
-    dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux),silent = TRUE) # use SSA to preliminarily fill the gaps
+    dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),silent = TRUE) # use SSA to preliminarily fill the gaps
     # try different settings
     if (class(dft_1)=="try-error"){
-      dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,amnt.artgaps = c(0,0),size.biggap = 0) # in case too many NAs around the gap
+      dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F) # in case too many NAs around the gap
     }
     # error still, then claim a fail
     if (class(dft_1)=="try-error"){
@@ -113,14 +116,14 @@ Gapfill_ssa <- function(data,
                                                                 borders.wl = borders.wl, M = L,
                                                                 # n.comp = c(50),
                                                                 #harmonics = c(1, 0, 0),
-                                                                plot.spectra = F, open.plot = F),silent = T)
+                                                                plot.spectra = F, open.plot = F,print.stat=F),silent = T)
 
       if (class(data.decomposed)=="try-error"){ # if decomposition failed, change n.comp to 10
         data.decomposed <- try(spectral.methods::filterTSeriesSSA(series = dft_1$filled.series,
                                                                   borders.wl = borders.wl, M = L,
                                                                   n.comp = 10,
                                                                   #harmonics = c(1, 0, 0),
-                                                                  plot.spectra = F, open.plot = F),silent = T)
+                                                                  plot.spectra = F, open.plot = F,print.stat=F),silent = T)
       }
       # if still fails, then use low frequency only
       if (class(data.decomposed)=="try-error"){ # if decomposition failed, change n.comp to 10
