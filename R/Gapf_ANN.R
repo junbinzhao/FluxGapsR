@@ -1,7 +1,8 @@
 #' Gap-fill using ANN
 #'
 #' This function automatically gap-fills the missing data points (marked as "NA") in the flux dataset
-#' using artificial neural networks that take up to three variables as inputs.
+#' using artificial neural networks (ANN) that take up to three variables as inputs. The ANN algorithms are based on
+#' the package `neuralnet`.
 #'
 #' @param data a data frame that includes the flux (with NA indicating the missing data) and independent variables
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled
@@ -10,8 +11,8 @@
 #' @param var3 a string indicates the column name for the third variable, default: NULL
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
-#' @param threshold a number specifies the threshold for the partial derivatives of the error function as stopping criteria for the ANN model
-#' @param hidden a vector of integers specifies the number of hidden neurons (vertices) in each layer in the ANN model
+#' @param threshold a number specifies the threshold for the partial derivatives of the error function as stopping criteria for the ANN model (default: 1)
+#' @param hidden a vector of integers specifies the number of hidden neurons (vertices) in each layer in the ANN model (default: c(2), i.e. one layer with 2 neurons)
 #' @param fail a string or a number indicates what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
