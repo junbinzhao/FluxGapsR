@@ -3,7 +3,7 @@
 #' This function automatically gap-fills the missing data points (marked as "NA") in the flux dataset
 #' using sigular spectrum analysis (SSA). The SSA is based on the algorithms in the package `spectral.methods` and `Rssa`.
 #'
-#' @param data a data frame that includes the flux (with NA indicating the missing data) and independent variables
+#' @param data a data frame that includes the flux (with NA indicating the missing data)
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled
 #' @param Date a string indicates the column name for the date, which HAS to include the time information
 #' @param Date_form a string indicates the format of the date, either "ymd_hms" (default), "mdy_hms" or "dmy_hms"

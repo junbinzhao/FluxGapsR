@@ -48,6 +48,6 @@ the package `neuralnet`.
 df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 df_filled <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
 # visualize the gapfilled results
-plot(df_filled$filled,col="red",ylim = c(0,11))
+plot(df_filled$filled,col="red")
 points(df_filled$Flux)
 }

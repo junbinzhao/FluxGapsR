@@ -4,10 +4,28 @@
 #' using expectation-maximization (EM) algorithm with up to 3 parallel measured reference flux time series.
 #' The function is based on the algorithms in the package `mtsdi`.
 #'
-#' @param data a data frame that includes the flux (with NA indicating the missing data) and independent variables
-#' @param Flux a string indicates the column name for the flux variable to be gap-filled
+#' @param data a data frame that includes the flux (with NA indicating the missing data)
+#' @param ref1 a data frame that includes the parallel measured reference flux time series #1,
+#' does not require to have the same length as the target data to be filled
+#' @param ref2 a data frame that includes the parallel measured reference flux time series #2 (optional),
+#' does not require to have the same length as the target data to be filled. Default: NULL
+#' @param ref3 a data frame that includes the parallel measured reference flux time series #3 (optional),
+#' does not require to have the same length as the target data to be filled. Default: NULL
+#' @param Flux a string indicates the column name of the flux variable to be gap-filled
+#' @param Flux1 a string indicates the column name of the reference time series in ref1. Default: same as Flux
+#' @param Flux2 a string indicates the column name of the reference time series in ref2. Default: same as Flux
+#' @param Flux3 a string indicates the column name of the reference time series in ref3. Default: same as Flux
+#' @param Date a string indicates the column name for the date in data, ref1, ref2 and ref3,
+#' and it HAS to include the time information. Note that all the data frames should have the same name for the date column.
+#' @param Date_form a string indicates the format of the date in data, ref1, ref2 and ref3,
+#' either "ymd_hms" (default), "mdy_hms" or "dmy_hms". Note that all the data frames should have the same date format.
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
+#' @param ts logical. TRUE if it is time series. Default: TRUE
+#' @param method a string indicates the method for univariate time series filtering,
+#' either "spline" (default),"arima", or "gam". See details in the package `mtsdi`.
+#' @param sp_df an integer indicates the degrees of freedom to be used for the splines.
+#' Default: NULL (chosen by cross-validation). See details in the package `mtsdi`.
 #' @param fail a string or a number indicates what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
@@ -36,7 +54,9 @@ Gapfill_em <- function(data,
                        Date_form = "ymd_hms",
                        win = 5,
                        interval = 10,
-                       df = 10,
+                       ts = TRUE,
+                       method = "spline",
+                       sp_df = NULL,
                        fail = "ave",
                        ...
 ){
@@ -129,13 +149,23 @@ Gapfill_em <- function(data,
                         mk=mk[wind_st:wind_ed])
 
     # EM imputation
-    df_out <- try(mtsdi::mnimput(formula = formula,
-                          df_em,
-                          ts=TRUE, method="spline",
-                          sp.control=list(df=df),
-                          ...
-                          ),
-                  silent = T)
+    if (method=="spline"){ # use spline as default
+      df_out <- try(mtsdi::mnimput(formula = formula,
+                      df_em,
+                      ts=ts, method="spline",
+                      sp.control=list(df=sp_df),
+                      ...
+                      ),
+              silent = T)
+    } else { # or use other methods
+      df_out <- try(mtsdi::mnimput(formula = formula,
+                                   df_em,
+                                   ts=ts, method=method,
+                                   ...
+      ),
+      silent = T)
+    }
+
     # if error
     if (class(df_out)=="try-error"){
       if (fail == "ave"){ # use average in the sampling window

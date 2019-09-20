@@ -9,7 +9,7 @@ Gapfill_ssa(data, Flux = "Flux", Date = "Date",
   win = 5, interval = 10, fail = "ave", ...)
 }
 \arguments{
-\item{data}{a data frame that includes the flux (with NA indicating the missing data) and independent variables}
+\item{data}{a data frame that includes the flux (with NA indicating the missing data)}
 
 \item{Flux}{a string indicates the column name for the flux variable to be gap-filled}
 
@@ -45,6 +45,6 @@ using sigular spectrum analysis (SSA). The SSA is based on the algorithms in the
 df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 df_filled <- Gapfill_ssa(data = df)
 # visualize the gapfilled results
-plot(df_filled$filled,col="red",ylim = c(0,11))
+plot(df_filled$filled,col="red")
 points(df_filled$Flux)
 }
