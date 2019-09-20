@@ -138,7 +138,7 @@ Gapfill_ssa <- function(data,
                         high=data.decomposed$dec.series[1,],
                         low=data.decomposed$dec.series[2,]) %>%
       # add time info
-      mutate(DOY=lubridate::yday(Date),
+      dplyr::mutate(DOY=lubridate::yday(Date),
              time=strftime(Date, format="%H:%M:%S") )
     dft_h <-
       dft_2 %>%  # use all the data in the sampling window for the high frequency

@@ -74,7 +74,7 @@ Gapfill_ann <- function(data,
     names(dft) <- c("Flux","var1")
     # scale and normalize the input variables
     dft <- dft %>%
-      mutate(var1=scale(var1))
+      dplyr::mutate(var1=scale(var1))
     formula <- as.formula("Flux~var1")
   } else {
     if (is.null(var3)){ # if two variables
@@ -83,7 +83,7 @@ Gapfill_ann <- function(data,
       names(dft) <- c("Flux","var1","var2")
       # scale and normalize the input variables
       dft <- dft %>%
-        mutate(var1=scale(var1),
+        dplyr::mutate(var1=scale(var1),
                var2=scale(var2))
       formula <- as.formula("Flux~var1+var2")
     } else { # if three variables
@@ -92,7 +92,7 @@ Gapfill_ann <- function(data,
       names(dft) <- c("Flux","var1","var2","var3")
       # scale and normalize the input variables
       dft <- dft %>%
-        mutate(var1=scale(var1),
+        dplyr::mutate(var1=scale(var1),
                var2=scale(var2),
                var3=scale(var3))
       formula <- as.formula("Flux~var1+var2+var3")
