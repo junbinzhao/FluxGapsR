@@ -18,9 +18,10 @@
 #' @examples
 #' # read example data
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
-#' df_filled <- Gapfill_em(data = df)
+#' df_ref <- read.csv(file = system.file("extdata", "Soil_resp_ref_example.csv", package = "FluxGapsR"),header = T)
+#' df_filled <- Gapfill_em(data = df,ref1 = df_ref)
 #' # visualize the gapfilled results
-#' plot(df_filled$filled,col="red",ylim = c(0,11))
+#' plot(df_filled$filled,col="red")
 #' points(df_filled$Flux)
 #' @export
 Gapfill_em <- function(data,
@@ -35,7 +36,7 @@ Gapfill_em <- function(data,
                        Date_form = "ymd_hms",
                        win = 5,
                        interval = 10,
-                       df = df,
+                       df = 10,
                        fail = "ave",
                        ...
 ){
@@ -128,15 +129,15 @@ Gapfill_em <- function(data,
                         mk=mk[wind_st:wind_ed])
 
     # EM imputation
-    df_out <- try(mnimput(formula = formula,
-                          dft1,
+    df_out <- try(mtsdi::mnimput(formula = formula,
+                          df_em,
                           ts=TRUE, method="spline",
-                          sp.control=list(df=10),
+                          sp.control=list(df=df),
                           ...
                           ),
                   silent = T)
     # if error
-    if (class(dft_out)=="try-error"){
+    if (class(df_out)=="try-error"){
       if (fail == "ave"){ # use average in the sampling window
         gap[indx] <- mean(dft$Flux[wind_st:wind_ed],na.rm = T)
         mark[indx] <- 2 # failed to filled gap
@@ -149,7 +150,7 @@ Gapfill_em <- function(data,
         print(paste0("#",i," out of ",max(mk)," gaps: Failed...")) # for checking progress
       }
     } else { # if imputation succeed
-      gap[indx] <- dft_out$filled.dataset$Flux[df_em$mk==i]
+      gap[indx] <- df_out$filled.dataset$Flux[df_em$mk==i]
       mark[indx] <- 1 # filled gap
       print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
     }

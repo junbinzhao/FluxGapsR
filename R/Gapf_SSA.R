@@ -24,7 +24,7 @@
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
 #' df_filled <- Gapfill_ssa(data = df)
 #' # visualize the gapfilled results
-#' plot(df_filled$filled,col="red",ylim = c(0,11))
+#' plot(df_filled$filled,col="red")
 #' points(df_filled$Flux)
 #' @export
 Gapfill_ssa <- function(data,
