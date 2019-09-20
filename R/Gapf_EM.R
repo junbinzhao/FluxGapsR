@@ -1,41 +1,43 @@
-#' Gap-fill using SSA
+#' Gap-fill using EM
 #'
 #' This function automatically gap-fills the missing data points (marked as "NA") in the flux dataset
-#' using sigular spectrum analysis (SSA). The SSA is based on the algorithms in the package `spectral.methods` and `Rssa`.
+#' using expectation-maximization (EM) algorithm with up to 3 parallel measured reference flux time series.
+#' The function is based on the algorithms in the package `mtsdi`.
 #'
 #' @param data a data frame that includes the flux (with NA indicating the missing data) and independent variables
 #' @param Flux a string indicates the column name for the flux variable to be gap-filled
-#' @param Date a string indicates the column name for the date, which HAS to include the time information
-#' @param Date_form a string indicates the format of the date, either "ymd_hms" (default), "mdy_hms" or "dmy_hms"
-#' @param borders.wl list of numeric vectors indicate orders of the different periodicity bands to extract.
-#' Units are the sampling frequency of the series
-#' (needs one vector per step; default: list(a = c(0,10, Inf)) (see details in the package `spectral.methods`)).
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
 #' @param fail a string or a number indicates what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
-#' @param ... other arguments pass to `gapfillSSA`
+#' @param ... other arguments pass to `mnimput`
 #' @return A data frame that includes the original data, gap-filled data ("filled")
 #' and a "mark" column that indicates the value in each row of the "filled" is either:
 #' 1. original, 2. gap-filled, or 3. failed to converge
 #' @examples
 #' # read example data
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
-#' df_filled <- Gapfill_ssa(data = df)
+#' df_filled <- Gapfill_em(data = df)
 #' # visualize the gapfilled results
 #' plot(df_filled$filled,col="red",ylim = c(0,11))
 #' points(df_filled$Flux)
 #' @export
-Gapfill_ssa <- function(data,
-                        Flux = "Flux",
-                        Date = "Date",
-                        Date_form = "ymd_hms",
-                        borders.wl = list(a = c(0,10, Inf)),
-                        win = 5,
-                        interval = 10,
-                        fail = "ave",
-                        ...
+Gapfill_em <- function(data,
+                       ref1,
+                       ref2 = NULL,
+                       ref3 = NULL,
+                       Flux = "Flux",
+                       Flux1 = Flux,
+                       Flux2 = Flux,
+                       Flux3 = Flux,
+                       Date = "Date",
+                       Date_form = "ymd_hms",
+                       win = 5,
+                       interval = 10,
+                       df = df,
+                       fail = "ave",
+                       ...
 ){
   # # define the pipe from the package "magrittr"
   `%>%` <- magrittr::`%>%`
@@ -71,7 +73,44 @@ Gapfill_ssa <- function(data,
                               "ymd_hms" = lubridate::ymd_hms(Date),
                               "mdy_hms" = lubridate::mdy_hms(Date),
                               "dmy_hms" = lubridate::dmy_hms(Date),
-                              stop("Invalid date format")))
+                              stop("Invalid date format for data")))
+  # extract the data for reference1
+  ref1 <- ref1[,c(Date,Flux1)]
+  names(ref1) <- c("Date","Flux1")
+  ref1 <- ref1 %>%
+    dplyr::mutate(Date=switch(Date_form, # convert the date into right format depending on the input format
+                              "ymd_hms" = lubridate::ymd_hms(Date),
+                              "mdy_hms" = lubridate::mdy_hms(Date),
+                              "dmy_hms" = lubridate::dmy_hms(Date),
+                              stop("Invalid date format for ref1")))
+  dft <- dplyr::left_join(dft,ref1,by = "Date")
+  formula <- as.formula("~Flux+Flux1")
+  # if the second reference is present
+  if (!is.null(ref2)){
+    ref2 <- ref2[,c(Date,Flux2)]
+    names(ref2) <- c("Date","Flux2")
+    ref2 <- ref2 %>%
+      dplyr::mutate(Date=switch(Date_form, # convert the date into right format depending on the input format
+                                "ymd_hms" = lubridate::ymd_hms(Date),
+                                "mdy_hms" = lubridate::mdy_hms(Date),
+                                "dmy_hms" = lubridate::dmy_hms(Date),
+                                stop("Invalid date format for ref2")))
+    dft <- dplyr::left_join(dft,ref2,by = "Date")
+    formula <- as.formula("~Flux+Flux1+Flux2")
+  }
+  # if the third reference is present
+  if (!is.null(ref3)){
+    ref3 <- ref3[,c(Date,Flux3)]
+    names(ref3) <- c("Date","Flux3")
+    ref3 <- ref3 %>%
+      dplyr::mutate(Date=switch(Date_form, # convert the date into right format depending on the input format
+                                "ymd_hms" = lubridate::ymd_hms(Date),
+                                "mdy_hms" = lubridate::mdy_hms(Date),
+                                "dmy_hms" = lubridate::dmy_hms(Date),
+                                stop("Invalid date format for ref3")))
+    dft <- dplyr::left_join(dft,ref3,by = "Date")
+    formula <- as.formula("~Flux+Flux1+Flux2+Flux3")
+  }
 
   # a vector for marks of each gap
   mark <- rep(0,nrow(dft))
@@ -85,17 +124,19 @@ Gapfill_ssa <- function(data,
     wind_st <- ifelse(min(indx)-winID>=0,min(indx)-winID,1) # use the beginning of time series if not enough sample points are present
     wind_ed <- ifelse(max(indx)+winID>nrow(data),nrow(data),max(indx)+winID) # use the end if not enough
     # extract data to fit the model
-    df_ssa <- data.frame(dft[wind_st:wind_ed,],
-                         mk=mk[wind_st:wind_ed])
+    df_em <- data.frame(dft[wind_st:wind_ed,],
+                        mk=mk[wind_st:wind_ed])
 
-    # SSA fit
-    dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),silent = TRUE) # use SSA to preliminarily fill the gaps
-    # try different settings
-    if (class(dft_1)=="try-error"){
-      dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F) # in case too many NAs around the gap
-    }
-    # error still, then claim a fail
-    if (class(dft_1)=="try-error"){
+    # EM imputation
+    df_out <- try(mnimput(formula = formula,
+                          dft1,
+                          ts=TRUE, method="spline",
+                          sp.control=list(df=10),
+                          ...
+                          ),
+                  silent = T)
+    # if error
+    if (class(dft_out)=="try-error"){
       if (fail == "ave"){ # use average in the sampling window
         gap[indx] <- mean(dft$Flux[wind_st:wind_ed],na.rm = T)
         mark[indx] <- 2 # failed to filled gap
@@ -107,53 +148,11 @@ Gapfill_ssa <- function(data,
         nf <- nf+1 # add up the failed times
         print(paste0("#",i," out of ",max(mk)," gaps: Failed...")) # for checking progress
       }
-    } else { # if low frequency successfully extracted
-      # extract the high and low frequency
-      # window length
-      L <- ifelse(sum(!is.na(dft_1$filled.series))>1040,# if available data series is longer than 1000 + 40
-                  1000, # use 1000 as window length
-                  sum(!is.na(dft_1$filled.series))-40-1) # otherwise, use series length - n.comp (40) - 1
-      data.decomposed <- try(spectral.methods::filterTSeriesSSA(series = dft_1$filled.series,
-                                                                borders.wl = borders.wl, M = L,
-                                                                # n.comp = c(50),
-                                                                #harmonics = c(1, 0, 0),
-                                                                plot.spectra = F, open.plot = F,print.stat=F),silent = T)
-
-      if (class(data.decomposed)=="try-error"){ # if decomposition failed, change n.comp to 10
-        data.decomposed <- try(spectral.methods::filterTSeriesSSA(series = dft_1$filled.series,
-                                                                  borders.wl = borders.wl, M = L,
-                                                                  n.comp = 10,
-                                                                  #harmonics = c(1, 0, 0),
-                                                                  plot.spectra = F, open.plot = F,print.stat=F),silent = T)
-      }
-      # if still fails, then use low frequency only
-      if (class(data.decomposed)=="try-error"){ # if decomposition failed, change n.comp to 10
-        gap[indx] <- dft_1$filled.series[df_ssa$mk==i]
-        mark[indx] <- 1 # filled gap
-        print(paste0("#",i," out of ",max(mk)," gaps: use low frequency only!!")) # for checking progress
-      } else { # if decomposition succeed
-        # combine data
-    dft_2 <- data.frame(df_ssa,
-                        filled=dft_1$filled.series,
-                        high=data.decomposed$dec.series[1,],
-                        low=data.decomposed$dec.series[2,]) %>%
-      # add time info
-      mutate(DOY=lubridate::yday(Date),
-             time=strftime(Date, format="%H:%M:%S") )
-    dft_h <-
-      dft_2 %>%  # use all the data in the sampling window for the high frequency
-      dplyr::filter(mk!=i) %>% # drop those lines where gaps locate
-      dplyr::group_by(time) %>%
-      dplyr::summarise(H=mean(high,na.rm = T))
-    # add the high frequency column to each day
-    dft_2 <- dplyr::left_join(dft_2,dft_h,by="time")
-    # calculate the gapfilled value and add to the "gap" vector
-    gap[indx] <- rowSums(dft_2[which(dft_2$mk==i),c("filled","H")],na.rm = T) # in case high frequency is NAs
-    mark[indx] <- 1 # filled gap
-    print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
-      } # end of decomposition suceed
-    } # end of low frequency extracted
-
+    } else { # if imputation succeed
+      gap[indx] <- dft_out$filled.dataset$Flux[df_em$mk==i]
+      mark[indx] <- 1 # filled gap
+      print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
+    }
   } # end of the loop
   df_new <- data.frame(data,
                        filled = gap,
