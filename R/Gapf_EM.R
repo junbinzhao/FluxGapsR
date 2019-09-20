@@ -24,8 +24,9 @@
 #' @param ts logical. TRUE if it is time series. Default: TRUE
 #' @param method a string indicates the method for univariate time series filtering,
 #' either "spline" (default),"arima", or "gam". See details in the package `mtsdi`.
-#' @param sp_df an integer indicates the degrees of freedom to be used for the splines.
-#' Default: NULL (chosen by cross-validation). See details in the package `mtsdi`.
+#' @param sp_df an integer indicates the degrees of freedom to be used for the splines (Default: 10).
+#' In case set to NULL, the degrees of freedom will be chosen by cross-validation.
+#' See details in the package `mtsdi`.
 #' @param fail a string or a number indicates what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
@@ -56,7 +57,7 @@ Gapfill_em <- function(data,
                        interval = 10,
                        ts = TRUE,
                        method = "spline",
-                       sp_df = NULL,
+                       sp_df = 10,
                        fail = "ave",
                        ...
 ){
