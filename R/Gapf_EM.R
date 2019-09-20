@@ -189,8 +189,8 @@ Gapfill_em <- function(data,
                        filled = gap,
                        tem = dft[,"Flux"],
                        mark) %>%
-    mutate(filled = ifelse(mark==0,tem,filled)) %>%
-    select(-tem) # drop the temperory column
+    dplyr::mutate(filled = ifelse(mark==0,tem,filled)) %>%
+    dplyr::select(-tem) # drop the temperory column
 
   # print a summary of the gapfilling ------------
   stat <- table(mk)[-1] # number of data points in each gap

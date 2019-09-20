@@ -71,8 +71,17 @@ df_ssa <- Gapfill_ssa(data = df)
 df_em <- Gapfill_em(data = df,ref1 = df_ref)
 
 # plot the results
-plot(df_nls$filled,col="red")
-points(df_nls$Flux)
+plot(df_nls$filled,col="red",type = "l",
+     ylab=expression("Soil respiration rate("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
+lines(df_ann$filled,col="blue",lty="dashed")
+lines(df_ssa$filled,col="green",lty="dotted")
+lines(df_em$filled,col="grey")
+lines(df_nls$Flux)
+legend(15000,8,
+       legend=c("NLS","ANN","SSA","EM"),
+       col=c("red","blue","green","grey"),
+       lty=c("solid","dashed","dotted","solid"),
+       box.lty=0)
 ```
 
 **Please cite the package as:** (TBD)
