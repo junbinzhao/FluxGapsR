@@ -56,32 +56,91 @@ must be installed before using the functions in the `FluxGapsR` package.
 ``` r
 library(FluxGapsR)
 
-# load the example data
-df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
+# load a fraction of example data for visualizing purpose
+df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),
+               header = T)[4000:8000,]
 # load the example reference
-df_ref <- read.csv(file = system.file("extdata", "Soil_resp_ref_example.csv", package = "FluxGapsR"),header = T)
+df_ref <- read.csv(file = system.file("extdata", "Soil_resp_ref_example.csv", package = "FluxGapsR"),
+                   header = T)[4000:8000,]
 
 # use NLS
 df_nls <- Gapfill_nls(data = df)
+#> [1] "3 gaps are marked"
+#> [1] "#1 out of 3 gaps: succeed!!"
+#> [1] "#2 out of 3 gaps: succeed!!"
+#> [1] "#3 out of 3 gaps: succeed!!"
+#> 
+#> ##### Summary #####
+#> 
+#> Total gaps:       3
+#> < 1 day:          2
+#> >= 1 & < 7 days:  1
+#> >= 7 & < 15 days: 0
+#> >= 15 days:       0
+#> Failed gaps:      0
+
 # use ANN
 df_ann <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
+#> [1] "3 gaps are marked"
+#> [1] "#1 out of 3 gaps: succeed!!"
+#> [1] "#2 out of 3 gaps: succeed!!"
+#> [1] "#3 out of 3 gaps: succeed!!"
+#> 
+#> ##### Summary #####
+#> 
+#> Total gaps:       3
+#> < 1 day:          2
+#> >= 1 & < 7 days:  1
+#> >= 7 & < 15 days: 0
+#> >= 15 days:       0
+#> Failed gaps:      0
+
 # use SSA
 df_ssa <- Gapfill_ssa(data = df)
+#> [1] "3 gaps are marked"
+#> [1] "#1 out of 3 gaps: succeed!!"
+#> [1] "#2 out of 3 gaps: succeed!!"
+#> [1] "#3 out of 3 gaps: succeed!!"
+#> 
+#> ##### Summary #####
+#> 
+#> Total gaps:       3
+#> < 1 day:          2
+#> >= 1 & < 7 days:  1
+#> >= 7 & < 15 days: 0
+#> >= 15 days:       0
+#> Failed gaps:      0
+
 # use EM
 df_em <- Gapfill_em(data = df,ref1 = df_ref)
+#> [1] "3 gaps are marked"
+#> [1] "#1 out of 3 gaps: succeed!!"
+#> [1] "#2 out of 3 gaps: succeed!!"
+#> [1] "#3 out of 3 gaps: succeed!!"
+#> 
+#> ##### Summary #####
+#> 
+#> Total gaps:       3
+#> < 1 day:          2
+#> >= 1 & < 7 days:  1
+#> >= 7 & < 15 days: 0
+#> >= 15 days:       0
+#> Failed gaps:      0
 
 # plot the results
 plot(df_nls$filled,col="red",type = "l",
-     ylab=expression("Soil respiration rate("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
+     ylab=expression("Soil respiration rate ("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
 lines(df_ann$filled,col="blue",lty="dashed")
 lines(df_ssa$filled,col="green",lty="dotted")
 lines(df_em$filled,col="grey")
 lines(df_nls$Flux)
-legend(15000,8,
+legend(3000,7,
        legend=c("NLS","ANN","SSA","EM"),
        col=c("red","blue","green","grey"),
        lty=c("solid","dashed","dotted","solid"),
        box.lty=0)
 ```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 **Please cite the package as:** (TBD)

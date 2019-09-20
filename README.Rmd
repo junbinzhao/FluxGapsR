@@ -49,36 +49,42 @@ The functioning of the package is based on other R packages:
 must be installed before using the functions in the `FluxGapsR` package.
 
 **Examples**
-``` r
+``` {r}
 library(FluxGapsR)
 
-# load the example data
-df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
+# load a fraction of example data for visualizing purpose
+df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),
+               header = T)[4000:8000,]
 # load the example reference
-df_ref <- read.csv(file = system.file("extdata", "Soil_resp_ref_example.csv", package = "FluxGapsR"),header = T)
+df_ref <- read.csv(file = system.file("extdata", "Soil_resp_ref_example.csv", package = "FluxGapsR"),
+                   header = T)[4000:8000,]
 
 # use NLS
 df_nls <- Gapfill_nls(data = df)
+
 # use ANN
 df_ann <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
+
 # use SSA
 df_ssa <- Gapfill_ssa(data = df)
+
 # use EM
 df_em <- Gapfill_em(data = df,ref1 = df_ref)
 
 # plot the results
 plot(df_nls$filled,col="red",type = "l",
-     ylab=expression("Soil respiration rate("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
+     ylab=expression("Soil respiration rate ("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
 lines(df_ann$filled,col="blue",lty="dashed")
 lines(df_ssa$filled,col="green",lty="dotted")
 lines(df_em$filled,col="grey")
 lines(df_nls$Flux)
-legend(15000,8,
+legend(3000,7,
        legend=c("NLS","ANN","SSA","EM"),
        col=c("red","blue","green","grey"),
        lty=c("solid","dashed","dotted","solid"),
        box.lty=0)
 
 ```
+
 **Please cite the package as:** 
 (TBD)
