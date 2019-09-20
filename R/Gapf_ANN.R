@@ -126,7 +126,7 @@ Gapfill_ann <- function(data,
                                    silent = TRUE)
 
     # predict the gaps
-    if (class(fit)!="try-error"){ # if the fit converged
+    if (class(nn)!="try-error"){ # if the fit converged
       gap[indx] <- predict(nn,newdata=dft[indx,])
       mark[indx] <- 1 # filled gap
       print(paste0("#",i," out of ",max(mk)," gaps: succeed!!")) # for checking progress
