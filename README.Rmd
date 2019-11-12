@@ -31,22 +31,24 @@ This is a package including four gap-filling methods for soil respiration data i
 
 **Package installation**
 
-First, make sure the package `devtools` is installed in R. If not,
+First, make sure the package `remotes` is installed in R. If not,
 install the package by:
 
 ``` r
-install.packages("devtools")
+install.packages("remotes")
 ```
 
 Then, install the `FluxGapsR` package in R by:
 
 ``` r
-devtools::install_github("junbinzhao/FluxGapsR")
+remotes::install_github("junbinzhao/FluxGapsR")
 ```
 
 The functioning of the package is based on other R packages:
-`tidyverse`,`spectral.methods`,`minpack.lm`,`mtsdi`,`neuralnet` and they
+`dplyr`,`lubridate`,`spectral.methods`,`minpack.lm`,`mtsdi`,`neuralnet` and they
 must be installed before using the functions in the `FluxGapsR` package.
+
+*Note: in case the installation fails in Rstudio, try to install the package in the original R program and then load the package in Rstudio.*
 
 **Examples**
 ``` {r}

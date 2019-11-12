@@ -34,22 +34,26 @@ published). The four methods are referred to as non-linear least squares
 
 **Package installation**
 
-First, make sure the package `devtools` is installed in R. If not,
+First, make sure the package `remotes` is installed in R. If not,
 install the package by:
 
 ``` r
-install.packages("devtools")
+install.packages("remotes")
 ```
 
 Then, install the `FluxGapsR` package in R by:
 
 ``` r
-devtools::install_github("junbinzhao/FluxGapsR")
+remotes::install_github("junbinzhao/FluxGapsR")
 ```
 
 The functioning of the package is based on other R packages:
-`tidyverse`,`spectral.methods`,`minpack.lm`,`mtsdi`,`neuralnet` and they
-must be installed before using the functions in the `FluxGapsR` package.
+`dplyr`,`lubridate`,`spectral.methods`,`minpack.lm`,`mtsdi`,`neuralnet`
+and they must be installed before using the functions in the `FluxGapsR`
+package.
+
+*Note: in case the installation fails in Rstudio, try to install the
+package in the original R program and then load the package in Rstudio.*
 
 **Examples**
 
@@ -98,6 +102,16 @@ df_ann <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
 # use SSA
 df_ssa <- Gapfill_ssa(data = df)
 #> [1] "3 gaps are marked"
+#> Registered S3 method overwritten by 'xts':
+#>   method     from
+#>   as.zoo.xts zoo
+#> Registered S3 method overwritten by 'quantmod':
+#>   method            from
+#>   as.zoo.data.frame zoo
+#> Registered S3 methods overwritten by 'forecast':
+#>   method             from    
+#>   fitted.fracdiff    fracdiff
+#>   residuals.fracdiff fracdiff
 #> [1] "#1 out of 3 gaps: succeed!!"
 #> [1] "#2 out of 3 gaps: succeed!!"
 #> [1] "#3 out of 3 gaps: succeed!!"
