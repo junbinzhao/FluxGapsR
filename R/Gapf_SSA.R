@@ -11,6 +11,8 @@
 #' Units are the sampling frequency of the series
 #' (needs one vector per step; default: list(a = c(0,10, Inf)) (see details in the package `spectral.methods`)).
 #' @param win a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)
+#' @param L an integer indicates the window length for time series decomposition, see ?ssa.
+#' If not provided, one third of the length of the selected time series is used.
 #' @param interval a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)
 #' @param fail a string or a number indicates what to do when model fails to converge:
 #' 1. use the mean value in the sampling window to fill the gap ("ave", default), or
@@ -33,6 +35,7 @@ Gapfill_ssa <- function(data,
                         Date_form = "ymd_hms",
                         borders.wl = list(a = c(0,10, Inf)),
                         win = 5,
+                        L = NULL,
                         interval = 10,
                         fail = "ave",
                         ...
@@ -89,11 +92,20 @@ Gapfill_ssa <- function(data,
                          mk=mk[wind_st:wind_ed])
 
     # SSA fit
-    dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),silent = TRUE) # use SSA to preliminarily fill the gaps
-    # try different settings
-    if (class(dft_1)=="try-error"){
-      dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F) # in case too many NAs around the gap
+    if (is.null(L)){
+        # try different settings
+        dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),silent = TRUE,...) # use SSA to preliminarily fill the gaps
+        if (class(dft_1)=="try-error"){
+          dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F,...) # in case too many NAs around the gap
+        }
+    } else {
+      # try different settings
+      dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),M=L,silent = TRUE,...) # use SSA to preliminarily fill the gaps
+      if (class(dft_1)=="try-error"){
+        dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,M=L,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F,...) # in case too many NAs around the gap
+      }
     }
+
     # error still, then claim a fail
     if (class(dft_1)=="try-error"){
       if (fail == "ave"){ # use average in the sampling window
@@ -110,9 +122,12 @@ Gapfill_ssa <- function(data,
     } else { # if low frequency successfully extracted
       # extract the high and low frequency
       # window length
-      L <- ifelse(sum(!is.na(dft_1$filled.series))>1040,# if available data series is longer than 1000 + 40
-                  1000, # use 1000 as window length
-                  sum(!is.na(dft_1$filled.series))-40-1) # otherwise, use series length - n.comp (40) - 1
+      if (is.null(L)){
+        L <- ifelse(sum(!is.na(dft_1$filled.series))>1040,# if available data series is longer than 1000 + 40
+                    1000, # use 1000 as window length
+                    sum(!is.na(dft_1$filled.series))-40-1) # otherwise, use series length - n.comp (40) - 1
+      }
+
       data.decomposed <- try(spectral.methods::filterTSeriesSSA(series = dft_1$filled.series,
                                                                 borders.wl = borders.wl, M = L,
                                                                 # n.comp = c(50),

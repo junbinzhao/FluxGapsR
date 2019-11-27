@@ -4,9 +4,19 @@
 \alias{Gapfill_ann}
 \title{Gap-fill using ANN}
 \usage{
-Gapfill_ann(data, Flux = "Flux", var1, var2 = NULL, var3 = NULL,
-  win = 5, interval = 10, threshold = 1, hidden = 2,
-  fail = "ave", ...)
+Gapfill_ann(
+  data,
+  Flux = "Flux",
+  var1,
+  var2 = NULL,
+  var3 = NULL,
+  win = 5,
+  interval = 10,
+  threshold = 1,
+  hidden = 2,
+  fail = "ave",
+  ...
+)
 }
 \arguments{
 \item{data}{a data frame that includes the flux (with NA indicating the missing data) and independent variables}

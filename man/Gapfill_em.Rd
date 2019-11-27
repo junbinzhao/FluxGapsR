@@ -4,10 +4,25 @@
 \alias{Gapfill_em}
 \title{Gap-fill using EM}
 \usage{
-Gapfill_em(data, ref1, ref2 = NULL, ref3 = NULL, Flux = "Flux",
-  Flux1 = Flux, Flux2 = Flux, Flux3 = Flux, Date = "Date",
-  Date_form = "ymd_hms", win = 5, interval = 10, ts = TRUE,
-  method = "spline", sp_df = NULL, fail = "ave", ...)
+Gapfill_em(
+  data,
+  ref1,
+  ref2 = NULL,
+  ref3 = NULL,
+  Flux = "Flux",
+  Flux1 = Flux,
+  Flux2 = Flux,
+  Flux3 = Flux,
+  Date = "Date",
+  Date_form = "ymd_hms",
+  win = 5,
+  interval = 10,
+  ts = TRUE,
+  method = "spline",
+  sp_df = 10,
+  fail = "ave",
+  ...
+)
 }
 \arguments{
 \item{data}{a data frame that includes the flux (with NA indicating the missing data)}
@@ -44,8 +59,9 @@ either "ymd_hms" (default), "mdy_hms" or "dmy_hms". Note that all the data frame
 \item{method}{a string indicates the method for univariate time series filtering,
 either "spline" (default),"arima", or "gam". See details in the package `mtsdi`.}
 
-\item{sp_df}{an integer indicates the degrees of freedom to be used for the splines.
-Default: NULL (chosen by cross-validation). See details in the package `mtsdi`.}
+\item{sp_df}{an integer indicates the degrees of freedom to be used for the splines (Default: 10).
+In case set to NULL, the degrees of freedom will be chosen by cross-validation.
+See details in the package `mtsdi`.}
 
 \item{fail}{a string or a number indicates what to do when model fails to converge:
 1. use the mean value in the sampling window to fill the gap ("ave", default), or

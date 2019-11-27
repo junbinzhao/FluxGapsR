@@ -4,8 +4,16 @@
 \alias{Gapfill_nls}
 \title{Gap-fill using NLS}
 \usage{
-Gapfill_nls(data, Flux = "Flux", Ts = "Ts", win = 5, interval = 10,
-  R10 = 10, E0 = 400, fail = "ave")
+Gapfill_nls(
+  data,
+  Flux = "Flux",
+  Ts = "Ts",
+  win = 5,
+  interval = 10,
+  R10 = 10,
+  E0 = 400,
+  fail = "ave"
+)
 }
 \arguments{
 \item{data}{a data frame that includes the flux (with NA indicating the missing data) and soil temperature}

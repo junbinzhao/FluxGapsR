@@ -4,9 +4,18 @@
 \alias{Gapfill_ssa}
 \title{Gap-fill using SSA}
 \usage{
-Gapfill_ssa(data, Flux = "Flux", Date = "Date",
-  Date_form = "ymd_hms", borders.wl = list(a = c(0, 10, Inf)),
-  win = 5, interval = 10, fail = "ave", ...)
+Gapfill_ssa(
+  data,
+  Flux = "Flux",
+  Date = "Date",
+  Date_form = "ymd_hms",
+  borders.wl = list(a = c(0, 10, Inf)),
+  win = 5,
+  L = NULL,
+  interval = 10,
+  fail = "ave",
+  ...
+)
 }
 \arguments{
 \item{data}{a data frame that includes the flux (with NA indicating the missing data)}
@@ -22,6 +31,9 @@ Units are the sampling frequency of the series
 (needs one vector per step; default: list(a = c(0,10, Inf)) (see details in the package `spectral.methods`)).}
 
 \item{win}{a number indicates the required sampling window length around each gap (total number in two sides), unit: days (default: 5)}
+
+\item{L}{an integer indicates the window length for time series decomposition, see ?ssa.
+If not provided, one third of the length of the selected time series is used.}
 
 \item{interval}{a number indicates the temporal resolution of the measurements in the dataset, unit: minutes (default: 10)}
 
