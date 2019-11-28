@@ -94,13 +94,13 @@ Gapfill_ssa <- function(data,
     # SSA fit
     if (is.null(L)){
         # try different settings
-        dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),silent = TRUE,...) # use SSA to preliminarily fill the gaps
+        dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F,...),silent = TRUE) # use SSA to preliminarily fill the gaps
         if (class(dft_1)=="try-error"){
           dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F,...) # in case too many NAs around the gap
         }
     } else {
       # try different settings
-      dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F),M=L,silent = TRUE,...) # use SSA to preliminarily fill the gaps
+      dft_1 <- try(spectral.methods::gapfillSSA(series = df_ssa$Flux,print.stat=F,M=L,...),silent = TRUE) # use SSA to preliminarily fill the gaps
       if (class(dft_1)=="try-error"){
         dft_1 <- spectral.methods::gapfillSSA(series = df_ssa$Flux,M=L,amnt.artgaps = c(0,0),size.biggap = 0,print.stat=F,...) # in case too many NAs around the gap
       }
