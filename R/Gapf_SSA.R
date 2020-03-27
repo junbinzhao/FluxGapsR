@@ -52,8 +52,10 @@ Gapfill_ssa <- function(data,
     } else {
       if (mt[i]==TRUE){
         mk[i] <- ind # gaps are marked as the value of ind
-        if (mt[i+1]==FALSE) {
+        if (i != length(mt)){ # to prevent the error when loop reach the end
+          if (mt[i+1]==FALSE) {
           ind <- ind+1 # when reached the end of a gap, change add 1 to ind
+          }
         }
       }
     }
