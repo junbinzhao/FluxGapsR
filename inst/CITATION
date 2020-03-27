@@ -1,0 +1,14 @@
+citHeader("To cite FluxCalR in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Gap-filling continuously-measured soil respiration data: a highlight of the time-series-based methods",
+  author   = "Junbin Zhao, Holger Lange and Helge Meissner",
+  journal  = "Agricultural and Forest Meteorology",
+  year     = "2020",
+  volume   = "",
+  number   = "",
+  pages    = "",
+  url      = "doi: 10.1016/j.agrformet.2020.107912",
+  textVersion = "Junbin Zhao, Holger Lange and Helge Meissner (2020). Gap-filling continuously-measured soil respiration data: a highlight of the time-series-based methods. Agricultural and Forest Meteorology, doi: 10.1016/j.agrformet.2020.107912"
+)

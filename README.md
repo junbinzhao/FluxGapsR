@@ -8,10 +8,10 @@
 <!-- badges: end -->
 
 This is a package including four gap-filling methods for soil
-respiration data investigated in the study of Zhao et al. 2019 (to be
-published). The four methods are referred to as non-linear least squares
-(NLS), artificial neural networks (ANN), singular spectrum analysis
-(SSA) and expectation-maximization (EM).
+respiration data investigated in the study of Zhao et al. (2020, see the
+citation at the end). The four methods are referred to as non-linear
+least squares (NLS), artificial neural networks (ANN), singular spectrum
+analysis (SSA) and expectation-maximization (EM).
 
 **Data preparation**
 
@@ -157,4 +157,9 @@ legend(3000,7,
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
-**Please cite the package as:** (TBD)
+**Please cite the package as:**
+
+Junbin Zhao, Holger Lange and Helge Meissner. Gap-filling
+continuously-measured soil respiration data: a highlight of the
+time-series-based methods. Agricultural and Forest Meteorology, 2020,
+doi: 10.1016/j.agrformet.2020.107912
