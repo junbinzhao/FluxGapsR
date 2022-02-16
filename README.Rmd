@@ -17,7 +17,10 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 <!-- badges: end -->
+**Updates**
+Since the dependent package `spectral.methods` is not available from CRAN now, and have problems with the code from Github, the SSA method is not supported in this package anymore. 
 
+-------------
 This is a package including four gap-filling methods for soil respiration data investigated in the study of Zhao et al. (2020, see the citation at the end). The four methods are referred to as non-linear least squares (NLS), artificial neural networks (ANN), singular spectrum analysis (SSA) and expectation-maximization (EM).
 
 **Data preparation**
@@ -68,7 +71,7 @@ df_nls <- Gapfill_nls(data = df)
 df_ann <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
 
 # use SSA
-df_ssa <- Gapfill_ssa(data = df)
+# df_ssa <- Gapfill_ssa(data = df)
 
 # use EM
 df_em <- Gapfill_em(data = df,ref1 = df_ref)
@@ -77,7 +80,7 @@ df_em <- Gapfill_em(data = df,ref1 = df_ref)
 plot(df_nls$filled,col="red",type = "l",
      ylab=expression("Soil respiration rate ("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
 lines(df_ann$filled,col="blue",lty="dashed")
-lines(df_ssa$filled,col="green",lty="dotted")
+# lines(df_ssa$filled,col="green",lty="dotted")
 lines(df_em$filled,col="grey")
 lines(df_nls$Flux)
 legend(3000,7,

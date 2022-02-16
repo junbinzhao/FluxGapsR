@@ -4,8 +4,13 @@
 # FluxGapsR
 
 <!-- badges: start -->
-
 <!-- badges: end -->
+
+**Updates** Since the dependent package `spectral.methods` is not
+available from CRAN now, and have problems with the code from Github,
+the SSA method is not supported in this package anymore.
+
+------------------------------------------------------------------------
 
 This is a package including four gap-filling methods for soil
 respiration data investigated in the study of Zhao et al. (2020, see the
@@ -29,8 +34,8 @@ analysis (SSA) and expectation-maximization (EM).
     the target flux series are required as inputs, which could be either
     in the same data frame or separate ones.
 6.  Note that the date and time are required for *SSA* and *EM* as one
-    column in each data frame in the format of either “ymd\_hms”,
-    “mdy\_hms” or “dmy\_hms”.
+    column in each data frame in the format of either “ymd_hms”,
+    “mdy_hms” or “dmy_hms”.
 
 **Package installation**
 
@@ -100,30 +105,7 @@ df_ann <- Gapfill_ann(data = df,var1 = "Ts",var2 = "Ta",var3 = "Moist")
 #> Failed gaps:      0
 
 # use SSA
-df_ssa <- Gapfill_ssa(data = df)
-#> [1] "3 gaps are marked"
-#> Registered S3 method overwritten by 'xts':
-#>   method     from
-#>   as.zoo.xts zoo
-#> Registered S3 method overwritten by 'quantmod':
-#>   method            from
-#>   as.zoo.data.frame zoo
-#> Registered S3 methods overwritten by 'forecast':
-#>   method             from    
-#>   fitted.fracdiff    fracdiff
-#>   residuals.fracdiff fracdiff
-#> [1] "#1 out of 3 gaps: succeed!!"
-#> [1] "#2 out of 3 gaps: succeed!!"
-#> [1] "#3 out of 3 gaps: succeed!!"
-#> 
-#> ##### Summary #####
-#> 
-#> Total gaps:       3
-#> < 1 day:          2
-#> >= 1 & < 7 days:  1
-#> >= 7 & < 15 days: 0
-#> >= 15 days:       0
-#> Failed gaps:      0
+# df_ssa <- Gapfill_ssa(data = df)
 
 # use EM
 df_em <- Gapfill_em(data = df,ref1 = df_ref)
@@ -145,7 +127,7 @@ df_em <- Gapfill_em(data = df,ref1 = df_ref)
 plot(df_nls$filled,col="red",type = "l",
      ylab=expression("Soil respiration rate ("*mu*"mol CO"[2]*" m"^-2*" s"^-1*")"))
 lines(df_ann$filled,col="blue",lty="dashed")
-lines(df_ssa$filled,col="green",lty="dotted")
+# lines(df_ssa$filled,col="green",lty="dotted")
 lines(df_em$filled,col="grey")
 lines(df_nls$Flux)
 legend(3000,7,
