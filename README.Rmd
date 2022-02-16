@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 **Updates**
 
-Since the dependent package `spectral.methods` is not available from CRAN now, and have problems with the code from Github, the SSA method is not supported in this package anymore. 
+Since the dependent package `spectral.methods` is not available from CRAN now, and also has problems with the code from Github, the SSA method is not supported in this package anymore. 
 
 -------------
 This is a package including four gap-filling methods for soil respiration data investigated in the study of Zhao et al. (2020, see the citation at the end). The four methods are referred to as non-linear least squares (NLS), artificial neural networks (ANN), singular spectrum analysis (SSA) and expectation-maximization (EM).
