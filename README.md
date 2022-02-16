@@ -6,9 +6,11 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-**Updates** Since the dependent package `spectral.methods` is not
-available from CRAN now, and have problems with the code from Github,
-the SSA method is not supported in this package anymore.
+**Updates**
+
+Since the dependent package `spectral.methods` is not available from
+CRAN now, and have problems with the code from Github, the SSA method is
+not supported in this package anymore.
 
 ------------------------------------------------------------------------
 
