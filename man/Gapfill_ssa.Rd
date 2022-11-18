@@ -46,7 +46,7 @@ If not provided, one third of the length of the selected time series is used.}
 \value{
 A data frame that includes the original data, gap-filled data ("filled")
 and a "mark" column that indicates the value in each row of the "filled" is either:
-1. original, 2. gap-filled, or 3. failed to converge
+0. original, 1. gap-filled, or 2. failed to converge
 }
 \description{
 This function automatically gap-fills the missing data points (marked as "NA") in the flux dataset

@@ -17,7 +17,7 @@
 #' 2. use any value assigned here to fill the gap (e.g., 9999, NA, etc.)
 #' @return A data frame that includes the original data, gap-filled data ("filled")
 #' and a "mark" column that indicates the value in each row of the "filled" is either:
-#' 1. original, 2. gap-filled, or 3. failed to converge
+#' 0. original, 1. gap-filled, or 2. failed to converge
 #' @references
 #' Lloyd J., Taylor, J.A., 1994. On the Temperature Dependence of Soil Respiration. Functional Ecology. 8, 315-323.
 #' @examples

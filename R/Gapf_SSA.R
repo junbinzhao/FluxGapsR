@@ -20,7 +20,7 @@
 #' @param ... other arguments pass to `gapfillSSA`
 #' @return A data frame that includes the original data, gap-filled data ("filled")
 #' and a "mark" column that indicates the value in each row of the "filled" is either:
-#' 1. original, 2. gap-filled, or 3. failed to converge
+#' 0. original, 1. gap-filled, or 2. failed to converge
 #' @examples
 #' # read example data
 #' df <- read.csv(file = system.file("extdata", "Soil_resp_example.csv", package = "FluxGapsR"),header = T)
